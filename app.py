@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 import textwrap
+from collections import Counter
 from evaluator import extract_text_from_pdf, evaluate_resume, evaluate_resumes_batch, ResumeEvaluation
 
 # ── Page Config ──────────────────────────────────────────────────────────────
@@ -519,6 +520,10 @@ if st.session_state.results:
     with s3:
         st.markdown(stat_card("Average Match Score", f"{avg_score}/100", "#FFFBEB", "#D97706"), unsafe_allow_html=True)
 
+    source_counts = Counter(r.get("source", "api") for r in results)
+    source_summary = ", ".join(f"{k.upper()}={v}" for k, v in source_counts.items())
+    st.caption(f"Evaluation sources: {source_summary}")
+
     st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
 
     # View toggle
@@ -535,11 +540,18 @@ if st.session_state.results:
             cls = "strong" if rec == "Strong Fit" else ("moderate" if rec == "Moderate Fit" else "notfit")
             icon = "🟢" if rec == "Strong Fit" else ("🟡" if rec == "Moderate Fit" else "🔴")
             is_top = (idx == 0 and result["score"] >= 70)
+            source = (result.get("source") or "api").lower()
 
             top_label = "<span class='top-match-label'>🏅 Top Match</span>" if is_top else ""
 
             strengths_html = "".join([f"<li>{s}</li>" for s in result["strengths"]])
             gaps_html      = "".join([f"<li>{g}</li>" for g in result["gaps"]])
+
+            source_badge = ""
+            if source in ("fallback", "filter"):
+                source_badge = f"<span style='margin-left:10px;font-size:0.75rem;font-weight:700;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;padding:3px 10px;border-radius:999px;'>⚠️ {source.upper()}</span>"
+            elif source == "cache":
+                source_badge = f"<span style='margin-left:10px;font-size:0.75rem;font-weight:700;color:#065F46;background:#ECFDF5;border:1px solid #6EE7B7;padding:3px 10px;border-radius:999px;'>⚡ CACHE</span>"
 
             card = f"""
 <div class='candidate-card {cls}'>
@@ -551,7 +563,7 @@ if st.session_state.results:
         </div>
         <div style='flex:1;min-width:0;'>
             <div style='display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;'>
-                <span class='cand-name'>{result['candidate_name']}</span>{top_label}
+                <span class='cand-name'>{result['candidate_name']}</span>{top_label}{source_badge}
             </div>
             <div class='cand-file'>📄 {result['filename']}</div>
             <span class='rec-chip {cls}'>{icon} {rec}</span>
@@ -570,6 +582,10 @@ if st.session_state.results:
     </div>
 </div>"""
             st.markdown(card.replace('\n', ''), unsafe_allow_html=True)
+            if source == "fallback":
+                api_failed = next((g for g in result.get("gaps", []) if isinstance(g, str) and "API FAILED:" in g), None)
+                if api_failed:
+                    st.warning(api_failed)
             with st.expander("🔍 View Extracted Text (For debugging AI scores)"):
                 st.text(result.get("extracted_text", "No text available"))
 
@@ -582,6 +598,7 @@ if st.session_state.results:
                 "Candidate": r["candidate_name"],
                 "Score": r["score"],
                 "Recommendation": r["recommendation"],
+                "Source": (r.get("source") or "api").upper(),
                 "Top Strength": r["strengths"][0] if r["strengths"] else "—",
                 "Top Gap": r["gaps"][0] if r["gaps"] else "—",
             })
@@ -594,6 +611,7 @@ if st.session_state.results:
                     "Score", format="%d", min_value=0, max_value=100
                 ),
                 "Recommendation": st.column_config.TextColumn("Recommendation"),
+                "Source": st.column_config.TextColumn("Source"),
             },
             hide_index=True,
             use_container_width=True
