@@ -3,7 +3,8 @@ import pandas as pd
 import time
 import textwrap
 from collections import Counter
-from evaluator import extract_text_from_pdf, evaluate_resume, evaluate_resumes_batch, ResumeEvaluation
+import os
+from evaluator import extract_text_from_pdf, evaluate_resume, evaluate_resumes_batch, ResumeEvaluation, GROQ_MODEL
 
 # ── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -12,6 +13,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# ── Deployment Debug Info ───────────────────────────────────────────────────
+api_key_present = bool(os.getenv("GROQ_API_KEY"))
+st.sidebar.caption(f"GROQ_API_KEY: {'present' if api_key_present else 'missing'}")
+st.sidebar.caption(f"Model: {GROQ_MODEL}")
 
 # ── Premium CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
@@ -583,9 +589,9 @@ if st.session_state.results:
 </div>"""
             st.markdown(card.replace('\n', ''), unsafe_allow_html=True)
             if source == "fallback":
-                api_failed = next((g for g in result.get("gaps", []) if isinstance(g, str) and "API FAILED:" in g), None)
-                if api_failed:
-                    st.warning(api_failed)
+                api_error = result.get("api_error", "")
+                if isinstance(api_error, str) and api_error.strip():
+                    st.warning(f"LLM error (used fallback): {api_error[:200]}")
             with st.expander("🔍 View Extracted Text (For debugging AI scores)"):
                 st.text(result.get("extracted_text", "No text available"))
 

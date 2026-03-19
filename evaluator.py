@@ -60,6 +60,7 @@ class ResumeEvaluation(BaseModel):
     recommendation: Literal["Strong Fit", "Moderate Fit", "Not Fit"]
     extracted_text: str = ""
     source: str = "api"  # "api" | "cache" | "filter" | "fallback"
+    api_error: str = ""  # populated when the LLM call fails
 
 def _clean_points(points, min_items: int = 2, max_items: int = 4) -> List[str]:
     if not isinstance(points, list):
@@ -524,7 +525,7 @@ def evaluate_resumes_batch(
                     if results[orig_i] is None:
                         fb = _rule_based_fallback(job_description, prep_text)
                         fb.extracted_text = raw_text
-                        fb.gaps.append(f"⚠️ API FAILED: {err_msg[:80]}...") # Expose error to UI
+                        fb.api_error = err_msg
                         results[orig_i] = ("fallback", fb)
 
             if b_idx < len(batches) - 1:
@@ -555,6 +556,7 @@ def evaluate_resumes_batch(
             "recommendation":  ev.recommendation,
             "extracted_text":  ev.extracted_text,
             "source":          source_tag,
+            "api_error":       getattr(ev, "api_error", "") or "",
         })
     return final
 
