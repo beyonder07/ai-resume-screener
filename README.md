@@ -53,3 +53,12 @@ streamlit run app.py
 *This project tackles the top-of-funnel hiring bottleneck. I built a highly practical, single-application MVP using Streamlit for an immediate, non-technical HR interface. For the intelligence layer, I integrated the Google Gemini API (via the OpenAI SDK compatibility layer) because it is exceptionally fast and supports strictly structured Pydantic JSON outputs. This guarantees the AI evaluates every candidate objectively and returns exactly the schema required: a Match Score, explicit Strengths/Gaps, and a Fit Recommendation, eliminating prompt-drift.*
 
 *I specifically avoided over-engineering with a heavy React/FastAPI stack, choosing instead to write custom CSS inside Streamlit. This achieved a premium, glassmorphism-inspired UI while keeping the codebase lightweight, Pythonic, and incredibly easy for a company to deploy or maintain tomorrow.*
+
+
+<!-- START_STATS_SECTION -->
+### 📊 Auto-Update Stats
+- **Last Active:** 5/30/2026, 11:48:25 AM
+- **Latest Focus:** CI/CD Workflows with GitHub Actions
+- **Current Streak Status:** Active 🔥
+- **Commit Mode:** Automated Daily Log System
+<!-- END_STATS_SECTION -->
