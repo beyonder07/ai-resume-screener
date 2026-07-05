@@ -19,3 +19,7 @@
 ### 7/5/2026 - Advanced ES Modules & ESM/CJS Interop
 - Completed learning segment on: *Documented design systems, core metrics, and operational guidelines.*
 - Sandbox action completed: `Implemented mock API service to bypass development blockages.`
+
+### 7/5/2026 - Redis Caching & Pub-Sub Mechanisms
+- Completed learning segment on: *Created comprehensive unit tests for custom helpers and logic paths.*
+- Sandbox action completed: `Updated logger service to support file stream rotations.`
